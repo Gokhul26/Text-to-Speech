@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My HTML Page</title>
+</head>
+<body>
+    <h3>File Upload</h3>
+<input id="file-upload-input" type="file" accept="audio/*" name="audioFile" />
+<button id="file-upload-btn" type="button">Upload</button>
+<h3>Transcript</h3>
+<p id="transcript"></p>
+<script>
+  let mediaStream, audioContext, audioSource
+  const fileUploadInput = document.getElementById("file-upload-input")
+  const fileUploadBtn = document.getElementById("file-upload-btn")
+  const transcriptEl = document.getElementById("transcript")
+  fileUploadBtn.addEventListener("click", handleFileUpload)
+
+
+  async function handleFileUpload() {
+    const file = fileUploadInput.files[0]
+    if (!file) return
+
+
+    // add audio file to FormData object
+    let data = new FormData()
+    data.append('audioFile', file)
+    data.append('fileName', file.name)
+
+
+    // send audio file to the `view` for transcription
+    transcriptEl.style.color = 'black'
+    transcriptEl.innerText = "Transcribing..."
+    const rawResponse = await fetch("", {
+      method: 'POST',
+      body: data,
+      headers: { "X-CSRFToken": '{{csrf_token}}' },
+    })
+
+
+    // handle transcript in response
+    const { transcript, error } = await rawResponse.json()
+    if (error) {
+      transcriptEl.style.color = 'red'
+      transcriptEl.innerText = error
+    } else if (transcript?.trim() === "") {
+      transcriptEl.innerText = "No audio detected."
+    } else if (transcript) {
+      transcriptEl.innerText = transcript
+    }
+  }
+</script>
+
+</body>
+</html>
